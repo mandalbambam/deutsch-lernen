@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { AI_TASKS, inputSchemas, outputSchemas, type AiErrorCode, type AiTask } from '@/lib/ai/schemas';
 import { AiError, generateJson } from '@/lib/ai/server/gemini';
 import { mockResponse } from '@/lib/ai/server/mock';
@@ -27,20 +28,46 @@ function fail(error: AiErrorCode, extra: { retryAfter?: number; message?: string
   return Response.json({ ok: false, error, ...extra }, { status: STATUS[error], headers });
 }
 
+/** Constant-time comparison; hashing first makes both sides the same length. */
+function samePassphrase(given: string, expected: string): boolean {
+  const digest = (s: string) => createHash('sha256').update(s).digest();
+  return timingSafeEqual(digest(given), digest(expected));
+}
+
 // Soft per-instance limiter to protect the free quota from runaway clients.
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 15;
+/** Cap across all clients, so rotating IPs can't drain the quota either. */
+const MAX_GLOBAL_PER_WINDOW = 60;
+const MAX_TRACKED = 5000;
 const hits = new Map<string, number[]>();
+let globalHits: number[] = [];
+
+/**
+ * Client IP from a source the client can't forge: Vercel overwrites `x-real-ip`,
+ * and proxies append to `x-forwarded-for`, so only its last hop is trustworthy.
+ */
+function clientIp(request: Request): string {
+  const real = request.headers.get('x-real-ip')?.trim();
+  if (real) return real;
+  return request.headers.get('x-forwarded-for')?.split(',').at(-1)?.trim() || 'local';
+}
+
 function allow(ip: string): boolean {
   const now = Date.now();
+  globalHits = globalHits.filter((t) => now - t < WINDOW_MS);
+  if (globalHits.length >= MAX_GLOBAL_PER_WINDOW) return false;
   const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
   if (recent.length >= MAX_PER_WINDOW) {
     hits.set(ip, recent);
     return false;
   }
   recent.push(now);
+  globalHits.push(now);
+  // re-insert so Map order stays least-recently-used first
+  hits.delete(ip);
   hits.set(ip, recent);
-  if (hits.size > 5000) hits.clear();
+  if (hits.size > MAX_TRACKED) hits.delete(hits.keys().next().value!);
   return true;
 }
 
@@ -49,10 +76,9 @@ export async function POST(request: Request) {
   if (!process.env.GEMINI_API_KEY && !mock) return fail('not_configured');
 
   const passphrase = process.env.APP_PASSPHRASE;
-  if (passphrase && request.headers.get('x-app-passphrase') !== passphrase) return fail('unauthorized');
+  if (passphrase && !samePassphrase(request.headers.get('x-app-passphrase') ?? '', passphrase)) return fail('unauthorized');
 
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
-  if (!allow(ip)) return fail('rate_limited', { retryAfter: 30 });
+  if (!allow(clientIp(request))) return fail('rate_limited', { retryAfter: 30 });
 
   const raw = await request.text();
   if (raw.length > 40_000) return fail('bad_request', { message: 'request too large' });
