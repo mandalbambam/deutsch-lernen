@@ -1,0 +1,117 @@
+{
+  "version": "2026-10-15",
+  "generatedAt": "2026-10-15T19:43:36.848Z",
+  "buckets": 32,
+  "files": {
+    "lex": [
+      "lex/00.e6c16251.json",
+      "lex/01.dcec68a7.json",
+      "lex/02.a432017f.json",
+      "lex/03.6a1737d7.json",
+      "lex/04.e3b60175.json",
+      "lex/05.e844393a.json",
+      "lex/06.dd4a2b73.json",
+      "lex/07.25d25573.json",
+      "lex/08.e9a46fdd.json",
+      "lex/09.e104d93c.json",
+      "lex/10.49441806.json",
+      "lex/11.caf612f5.json",
+      "lex/12.d7bcb0b1.json",
+      "lex/13.d42b749c.json",
+      "lex/14.84e08a32.json",
+      "lex/15.49eb1533.json",
+      "lex/16.25d17486.json",
+      "lex/17.8d703089.json",
+      "lex/18.4144d176.json",
+      "lex/19.1aab385e.json",
+      "lex/20.0825c0d2.json",
+      "lex/21.2f2b24bd.json",
+      "lex/22.38c3af5c.json",
+      "lex/23.2d5bf8e2.json",
+      "lex/24.d491bfea.json",
+      "lex/25.78c0ce89.json",
+      "lex/26.a0467fa3.json",
+      "lex/27.20f9213b.json",
+      "lex/28.4b8c62a2.json",
+      "lex/29.546e6db7.json",
+      "lex/30.0b5313d2.json",
+      "lex/31.8b26000c.json"
+    ],
+    "verbs": [
+      "verbs/0.d470d2fa.json",
+      "verbs/1.3ae49a72.json",
+      "verbs/2.901f2eb7.json",
+      "verbs/3.23aa5757.json",
+      "verbs/4.d4a41177.json",
+      "verbs/5.e75c70fa.json",
+      "verbs/6.b0def73f.json",
+      "verbs/7.e45d884c.json"
+    ],
+    "verbBuckets": 8,
+    "sentences": {
+      "A1": "sent/A1.f75f2148.json",
+      "A2": "sent/A2.d852e56c.json",
+      "B1": "sent/B1.8b81007f.json",
+      "B2": "sent/B2.00cf4c80.json",
+      "C1": "sent/C1.648ba740.json",
+      "C2": "sent/C2.adba0103.json"
+    },
+    "decks": {
+      "A1": "deck/A1.505628c8.json",
+      "A2": "deck/A2.af922be5.json",
+      "B1": "deck/B1.2c1f6fac.json",
+      "B2": "deck/B2.17531c94.json",
+      "C1": "deck/C1.b1c91db2.json",
+      "C2": "deck/C2.5aa1f547.json"
+    }
+  },
+  "counts": {
+    "lemmas": 30544,
+    "forms": 183423,
+    "verbs": 3521,
+    "sentences": {
+      "A1": 5000,
+      "A2": 6000,
+      "B1": 6000,
+      "B2": 5000,
+      "C1": 4000,
+      "C2": 2500
+    },
+    "deck": {
+      "A1": 770,
+      "A2": 976,
+      "B1": 1570,
+      "B2": 2822,
+      "C1": 5178,
+      "C2": 16821
+    }
+  },
+  "bytes": 21324045,
+  "sources": [
+    {
+      "name": "Tatoeba (https://tatoeba.org)",
+      "url": "https://downloads.tatoeba.org/exports/per_language/deu/deu_sentences_detailed.tsv.bz2",
+      "license": "CC BY 2.0 FR"
+    },
+    {
+      "name": "Tatoeba (https://tatoeba.org)",
+      "url": "https://downloads.tatoeba.org/exports/per_language/deu/deu-eng_links.tsv.bz2",
+      "license": "CC BY 2.0 FR"
+    },
+    {
+      "name": "Tatoeba (https://tatoeba.org)",
+      "url": "https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences.tsv.bz2",
+      "license": "CC BY 2.0 FR"
+    },
+    {
+      "name": "Wiktionary (https://en.wiktionary.org) via kaikki.org / wiktextract",
+      "url": "https://kaikki.org/dictionary/German/kaikki.org-dictionary-German.jsonl.gz",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "name": "FrequencyWords by Hermit Dave (OpenSubtitles 2018 corpus)",
+      "url": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/de/de_full.txt",
+      "license": "CC BY-SA 4.0"
+    }
+  ]
+}

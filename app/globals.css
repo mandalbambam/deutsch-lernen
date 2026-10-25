@@ -1,0 +1,121 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --surface-2: #eef0f6;
+  --line: #e1e4ee;
+  --fg: #111827;
+  --muted: #586174;
+  --accent: #4f46e5;
+  --accent-fg: #ffffff;
+  --accent-soft: #eceefe;
+  --success: #15803d;
+  --success-soft: #dcfce7;
+  --danger: #c81e1e;
+  --danger-soft: #fde8e8;
+  --warning: #b45309;
+  --warning-soft: #fef3c7;
+  /* article colours: der / die / das / plural */
+  --der: #1d4ed8;
+  --die: #c81e1e;
+  --das: #15803d;
+  --plural: #7e22ce;
+}
+
+.dark {
+  --bg: #0b0f19;
+  --surface: #131a28;
+  --surface-2: #1b2435;
+  --line: #273247;
+  --fg: #e7eaf3;
+  --muted: #9aa4ba;
+  --accent: #8b93ff;
+  --accent-fg: #0b0f19;
+  --accent-soft: #232659;
+  --success: #4ade80;
+  --success-soft: #0f2d1c;
+  --danger: #f87171;
+  --danger-soft: #3b1414;
+  --warning: #fbbf24;
+  --warning-soft: #3a2a07;
+  --der: #6ea8ff;
+  --die: #ff7d7d;
+  --das: #5ee08f;
+  --plural: #c99bff;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-der: var(--der);
+  --color-die: var(--die);
+  --color-das: var(--das);
+  --color-plural: var(--plural);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* comfortable reading text for German passages */
+.reading-text {
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation: none;
+  }
+}

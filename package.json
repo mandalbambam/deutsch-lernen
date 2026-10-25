@@ -1,0 +1,48 @@
+{
+  "name": "deutsch-lernen",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "data:download": "tsx scripts/data/download.ts",
+    "data:build": "node --max-old-space-size=8192 --import tsx scripts/data/build.ts",
+    "data": "npm run data:download && npm run data:build",
+    "check": "npm run typecheck && npm run lint && npm run validate:content && npm test",
+    "e2e": "node tests/e2e/smoke.mjs"
+  },
+  "dependencies": {
+    "dexie": "^4.4.6",
+    "dexie-react-hooks": "^4.4.0",
+    "lucide-react": "^1.57.0",
+    "next": "16.4.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "ts-fsrs": "^5.4.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.1",
+    "fake-indexeddb": "^6.2.5",
+    "playwright-core": "^1.64.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "unbzip2-stream": "^1.4.3",
+    "vitest": "^5.0.4"
+  },
+  "description": "Personal, free, local-first German learning PWA (A1 → C2)",
+  "engines": {
+    "node": ">=20.9"
+  }
+}
