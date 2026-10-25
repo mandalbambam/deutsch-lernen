@@ -155,7 +155,8 @@ Your progress lives only in the browser where you use the app. Use **Settings â†
 | [Wiktionary](https://en.wiktionary.org) via [kaikki.org](https://kaikki.org) | genders, plurals, conjugations, glosses | CC BY-SA 4.0 |
 | [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (OpenSubtitles 2018) | word frequencies | CC BY-SA 4.0 |
 
-The derived files in `public/data/lex` and `public/data/verbs` are shared under CC BY-SA 4.0.
+The app's source code and hand-written content are released under the [MIT License](LICENSE).
+The derived files in `public/data/lex` and `public/data/verbs` are shared under CC BY-SA 4.0 (as required by their sources).
 The placement test, grammar lessons, reading texts, listening scripts, writing tasks and role-plays were written for this app and aligned with the CEFR descriptors. CEFR levels of individual words and sentences are estimated automatically. Nothing here is an official certificate.
 The **Free resources** page only links to external sites (DW, tagesschau, Deutschlandfunk â€¦); no content is copied.
 
