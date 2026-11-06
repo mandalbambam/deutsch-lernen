@@ -139,8 +139,8 @@ Your progress lives only in the browser where you use the app. Use **Settings â†
 
 If you run the app on your own server for one person, it can keep your laptop and phone in step automatically:
 
-1. Set `SYNC_DATA_DIR` to a folder that survives updates, e.g. `SYNC_DATA_DIR=/opt/deutsch-lernen/sync`, and restart the server.
-2. **Protect the app first.** Sync stores one person's data and anyone who can reach the app can read and overwrite it, so put it behind a login (for example nginx basic auth) or also set `APP_PASSPHRASE`. If you use nginx, set `client_max_body_size 25M`.
+1. **Protect the app first.** Sync stores one person's data, and anyone who can reach it can read and overwrite it. Either put the app behind a login (for example nginx basic auth) and set `SYNC_BEHIND_LOGIN=1` to confirm it, or set `APP_PASSPHRASE`. Sync stays off until you do one of these. If you use nginx, set `client_max_body_size 25M`.
+2. Set `SYNC_DATA_DIR` to a folder that survives updates, e.g. `SYNC_DATA_DIR=/opt/deutsch-lernen/sync`, and restart the server.
 
 **Settings â†’ Your data** then shows the sync status. Good to know:
 

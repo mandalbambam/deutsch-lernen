@@ -92,6 +92,7 @@ afterAll(async () => {
 beforeEach(async () => {
   dir = path.join(root, `case-${n++}`);
   process.env.SYNC_DATA_DIR = dir;
+  process.env.SYNC_BEHIND_LOGIN = '1';
   current = null;
   vi.stubGlobal('localStorage', fakeLocalStorage(new Map()));
   await deleteAllData();
@@ -101,6 +102,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   delete process.env.SYNC_DATA_DIR;
   delete process.env.APP_PASSPHRASE;
+  delete process.env.SYNC_BEHIND_LOGIN;
 });
 
 describe('merge rules', () => {
@@ -243,7 +245,16 @@ describe('sync route', () => {
     expect((await DELETE(new Request('http://test/api/sync', { method: 'DELETE' }))).status).toBe(404);
   });
 
+  it('stays off and stores nothing when nothing protects it', async () => {
+    delete process.env.SYNC_BEHIND_LOGIN;
+    expect((await GET(new Request('http://test/api/sync'))).status).toBe(404);
+    expect((await put(gz, { 'content-type': 'application/gzip', 'x-sync-etag': '0.0' })).status).toBe(404);
+    expect((await DELETE(new Request('http://test/api/sync', { method: 'DELETE' }))).status).toBe(404);
+    await expect(readdir(dir)).rejects.toThrow();
+  });
+
   it('respects APP_PASSPHRASE', async () => {
+    delete process.env.SYNC_BEHIND_LOGIN; // the passphrase alone is enough to turn it on
     process.env.APP_PASSPHRASE = 'secret';
     expect((await GET(new Request('http://test/api/sync'))).status).toBe(401);
     expect((await GET(new Request('http://test/api/sync', { headers: { 'x-app-passphrase': 'secret' } }))).status).toBe(204);

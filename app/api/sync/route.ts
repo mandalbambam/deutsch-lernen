@@ -1,7 +1,7 @@
 import { passphraseOk } from '@/lib/ai/server/passphrase';
 import { MAX_SNAPSHOT_BYTES, readSnapshot, resetSnapshot, syncDir, writeSnapshot } from '@/lib/sync/server';
 
-/** Off unless SYNC_DATA_DIR is set; only turn it on behind a login or with APP_PASSPHRASE. */
+/** Off unless SYNC_DATA_DIR is set together with APP_PASSPHRASE or SYNC_BEHIND_LOGIN=1 (see syncDir). */
 const ETAG = 'x-sync-etag';
 
 function reply(status: number, etag?: string, body?: BodyInit, type?: string) {

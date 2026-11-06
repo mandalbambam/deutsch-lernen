@@ -18,7 +18,9 @@ interface Meta {
 }
 
 export function syncDir(): string | undefined {
-  return process.env.SYNC_DATA_DIR?.trim() || undefined;
+  // one person's data: stays off until the server says what keeps other people out
+  const guarded = !!process.env.APP_PASSPHRASE || process.env.SYNC_BEHIND_LOGIN === '1';
+  return (guarded && process.env.SYNC_DATA_DIR?.trim()) || undefined;
 }
 
 export const etagOf = (m: Meta) => `${m.epoch}.${m.version}`;
