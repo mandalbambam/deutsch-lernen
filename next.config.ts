@@ -4,6 +4,8 @@ import type { NextConfig } from 'next';
 const buildId = (process.env.VERCEL_GIT_COMMIT_SHA ?? Date.now().toString(36)).slice(0, 12);
 
 const nextConfig: NextConfig = {
+  // self-contained build for small self-hosted servers: `NEXT_OUTPUT=standalone npm run build`
+  output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
   // lets phones on the home network use `npm run dev` via the PC's IP (e.g. http://192.168.1.116:3000)
   allowedDevOrigins: ['192.168.*.*', '10.*.*.*'],
   cacheComponents: true,

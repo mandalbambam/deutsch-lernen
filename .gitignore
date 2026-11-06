@@ -46,3 +46,6 @@ next-env.d.ts
 
 # vitest output
 /.vitest/
+
+# private deployment scripts and notes (server address, domain)
+/deploy.local/
