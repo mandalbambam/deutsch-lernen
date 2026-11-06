@@ -150,7 +150,8 @@ export function Reviewer({
         });
         setStats((s) => ({ reviewed: Math.max(0, s.reviewed - 1), again: Math.max(0, s.again - (last.rating === 1 ? 1 : 0)) }));
       } else {
-        await db.cards.put(last.previous);
+        // newer than the changed copy, so sync keeps the undo
+        await db.cards.put({ ...last.previous, updatedAt: Date.now() });
         setQueue((q) => [last.previous, ...q]);
       }
       setHistory((h) => h.slice(0, -1));

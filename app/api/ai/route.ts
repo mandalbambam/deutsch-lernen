@@ -1,7 +1,7 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
 import { AI_TASKS, inputSchemas, outputSchemas, type AiErrorCode, type AiTask } from '@/lib/ai/schemas';
 import { AiError, generateJson } from '@/lib/ai/server/gemini';
 import { mockResponse } from '@/lib/ai/server/mock';
+import { passphraseOk } from '@/lib/ai/server/passphrase';
 import { buildRequest } from '@/lib/ai/server/prompts';
 
 /** Free-tier calls can take a while; Vercel Hobby allows up to 60 s. */
@@ -26,12 +26,6 @@ function fail(error: AiErrorCode, extra: { retryAfter?: number; message?: string
   const headers: Record<string, string> = { 'Cache-Control': 'no-store' };
   if (extra.retryAfter) headers['Retry-After'] = String(extra.retryAfter);
   return Response.json({ ok: false, error, ...extra }, { status: STATUS[error], headers });
-}
-
-/** Constant-time comparison; hashing first makes both sides the same length. */
-function samePassphrase(given: string, expected: string): boolean {
-  const digest = (s: string) => createHash('sha256').update(s).digest();
-  return timingSafeEqual(digest(given), digest(expected));
 }
 
 // Soft per-instance limiter to protect the free quota from runaway clients.
@@ -75,8 +69,7 @@ export async function POST(request: Request) {
   const mock = process.env.GEMINI_MOCK === '1';
   if (!process.env.GEMINI_API_KEY && !mock) return fail('not_configured');
 
-  const passphrase = process.env.APP_PASSPHRASE;
-  if (passphrase && !samePassphrase(request.headers.get('x-app-passphrase') ?? '', passphrase)) return fail('unauthorized');
+  if (!passphraseOk(request)) return fail('unauthorized');
 
   if (!allow(clientIp(request))) return fail('rate_limited', { retryAfter: 30 });
 

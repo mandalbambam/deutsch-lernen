@@ -36,6 +36,7 @@ export default function AboutPage() {
           <p className="text-sm">
             Everything you do — test results, flashcards, texts you write, conversations, progress — is stored locally in your browser (IndexedDB). There
             is no account and no server database. Use <em>Settings → Your data → Export backup</em> to back up your progress or move it to another device.
+            If you host the app yourself and turn on sync, a copy is also kept on your own server.
           </p>
           <p className="text-sm text-muted">
             The optional AI features send only the text you submit to Google’s Gemini API through this app’s server route; the API key never reaches your

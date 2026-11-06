@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Database, Download, HardDriveDownload, Trash2, Upload } from 'lucide-react';
+import { Database, Download, HardDriveDownload, RefreshCw, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Notice, ProgressBar } from '@/components/ui/misc';
@@ -11,6 +11,7 @@ import { backupSummary, deleteAllData, downloadBackup, importBackup, parseBackup
 import { allDataUrls } from '@/lib/data/load';
 import { formatDate } from '@/lib/format';
 import { useLang } from '@/lib/i18n';
+import { replaceEverywhere, syncNow, useSyncStatus } from '@/lib/sync/client';
 
 function mb(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -21,6 +22,7 @@ export function DataSettings() {
   const toast = useToast();
   const lang = useLang();
   const router = useRouter();
+  const sync = useSyncStatus();
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{ backup: Backup; name: string } | null>(null);
   const [confirmReplace, setConfirmReplace] = useState(false);
@@ -46,6 +48,8 @@ export function DataSettings() {
     setBusy(true);
     try {
       const n = await importBackup(pending.backup, mode);
+      if (mode === 'replace') await replaceEverywhere();
+      else void syncNow();
       toast({ message: mode === 'replace' ? `Backup restored (${n} records).` : `Backup merged (${n} records added or updated).`, tone: 'success' });
       setPending(null);
       setConfirmReplace(false);
@@ -77,7 +81,28 @@ export function DataSettings() {
   return (
     <Card className="space-y-5">
       <CardTitle icon={<Database className="size-5 text-accent" />}>Your data</CardTitle>
-      <p className="text-sm text-muted">Everything you learn is stored only on this device. Export a backup regularly — and use it to move your progress between laptop and phone.</p>
+      {sync.enabled ? (
+        <section className="space-y-2">
+          <p className="text-sm text-muted">Your progress is stored on this device and kept in step with your other devices through your own server. Unfinished writing drafts stay on the device they were started on.</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="secondary" size="sm" disabled={sync.state === 'syncing'} onClick={() => void syncNow()}>
+              <RefreshCw className="size-4" /> Sync now
+            </Button>
+            <span className="text-sm text-muted" role="status">
+              {sync.state === 'syncing'
+                ? 'Syncing…'
+                : sync.state === 'offline'
+                  ? 'Offline — your changes will sync when you are back online.'
+                  : sync.lastSyncedAt
+                    ? `Last synced ${formatDate(sync.lastSyncedAt, lang, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                    : 'Not synced yet'}
+            </span>
+          </div>
+          {sync.state === 'error' && <Notice tone="danger">Sync failed: {sync.message} Your data on this device is safe.</Notice>}
+        </section>
+      ) : (
+        <p className="text-sm text-muted">Everything you learn is stored only on this device. Export a backup regularly — and use it to move your progress between laptop and phone.</p>
+      )}
 
       <section className="space-y-2">
         <div className="flex flex-wrap gap-2">
@@ -125,14 +150,17 @@ export function DataSettings() {
                 </Button>
               ) : (
                 <Button size="sm" variant="danger" disabled={busy} onClick={() => runImport('replace')}>
-                  Yes, replace everything on this device
+                  {sync.enabled ? 'Yes, replace everything on all my devices' : 'Yes, replace everything on this device'}
                 </Button>
               )}
               <Button size="sm" variant="ghost" disabled={busy} onClick={() => setPending(null)}>
                 Cancel
               </Button>
             </div>
-            <p className="text-xs text-muted">Merge keeps both: when the same item exists on both sides, the newer version wins. Replace deletes this device’s data first.</p>
+            <p className="text-xs text-muted">
+              Merge keeps both: when the same item exists on both sides, the newer version wins.{' '}
+              {sync.enabled ? 'Replace makes this backup the only copy: your other devices drop their data at their next sync.' : 'Replace deletes this device’s data first.'}
+            </p>
           </div>
         )}
       </section>
@@ -162,7 +190,7 @@ export function DataSettings() {
         <p className="text-sm font-medium">Start over</p>
         {!confirmDelete ? (
           <Button variant="ghost" onClick={() => setConfirmDelete(true)}>
-            <Trash2 className="size-4" /> Delete all data on this device
+            <Trash2 className="size-4" /> {sync.enabled ? 'Delete all data on all my devices' : 'Delete all data on this device'}
           </Button>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
@@ -172,6 +200,7 @@ export function DataSettings() {
               size="sm"
               onClick={async () => {
                 await deleteAllData();
+                await replaceEverywhere();
                 setConfirmDelete(false);
                 router.push('/');
               }}

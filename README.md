@@ -135,6 +135,23 @@ Without a voice, listening tasks fall back to reading the transcript. Speech rec
 
 Your progress lives only in the browser where you use the app. Use **Settings → Your data → Export backup** to save a JSON file and **Import backup** on the other device. Choose *Merge* to combine both devices’ history (the newer version of each item wins) or *Replace* to restore a backup exactly.
 
+### Optional: sync between your devices (self-hosting)
+
+If you run the app on your own server for one person, it can keep your laptop and phone in step automatically:
+
+1. Set `SYNC_DATA_DIR` to a folder that survives updates, e.g. `SYNC_DATA_DIR=/opt/deutsch-lernen/sync`, and restart the server.
+2. **Protect the app first.** Sync stores one person's data and anyone who can reach the app can read and overwrite it, so put it behind a login (for example nginx basic auth) or also set `APP_PASSPHRASE`. If you use nginx, set `client_max_body_size 25M`.
+
+**Settings → Your data** then shows the sync status. Good to know:
+
+- Devices upload shortly after you study and when you leave the app, and fetch changes when you come back. Offline changes are uploaded once you are online again.
+- Records are merged one by one, so nothing is overwritten wholesale. Finished tests beat unfinished ones, unfinished tests continue from the copy with the most answers, and everything else keeps the newest version.
+- Study time for a day shows the higher of your devices' numbers rather than their sum.
+- **Replace** and **Delete all data** apply to all your devices once sync is on.
+- The server keeps daily copies in `backups/` inside that folder (the latest 14).
+
+It does not work on Vercel, which has no permanent disk.
+
 ## Troubleshooting
 
 | Problem | Fix |

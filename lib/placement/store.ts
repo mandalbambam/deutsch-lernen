@@ -1,5 +1,5 @@
 import { ALL_ITEMS, ITEM_BY_ID, PASSAGES } from '@/content/placement';
-import { db, uid } from '@/lib/db';
+import { db, deleteRecords, uid } from '@/lib/db';
 import { logMistakes } from '@/lib/db/mistakes';
 import type { Assessment, ItemResponse, SkillEstimate, TestedSkill } from '@/lib/db/types';
 import { analyze, overallFrom } from './analysis';
@@ -34,7 +34,7 @@ export async function startAssessment(
 ): Promise<Assessment> {
   // remove abandoned attempts of the same kind
   const stale = (await db.assessments.where('status').equals('in-progress').toArray()).filter((a) => a.kind === kind);
-  await db.assessments.bulkDelete(stale.map((a) => a.id));
+  await deleteRecords('assessments', stale.map((a) => a.id));
 
   const seed = Math.floor(Math.random() * 2 ** 31);
   const exclude = await recentlySeen(kind);
@@ -64,7 +64,7 @@ export async function saveProgress(a: Assessment): Promise<void> {
 }
 
 export async function discardAssessment(id: string): Promise<void> {
-  await db.assessments.delete(id);
+  await deleteRecords('assessments', [id]);
 }
 
 /** Computes the final result, stores it and updates the learner's skill levels and error profile. */

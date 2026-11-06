@@ -10,7 +10,7 @@ import { EmptyState, Loading, Segmented } from '@/components/ui/misc';
 import { LEVELS, type Level } from '@/lib/cefr';
 import { loadDeck } from '@/lib/data/load';
 import type { DeckEntry } from '@/lib/data/types';
-import { db } from '@/lib/db';
+import { db, deleteRecords } from '@/lib/db';
 import type { Card as CardT } from '@/lib/db/types';
 import { cardFromDeck, deckCardId, resetCard, setSuspended } from '@/lib/srs/cards';
 import { useClientValue } from '@/lib/use-client-value';
@@ -123,7 +123,7 @@ function MyCards() {
               <IconButton
                 label="Delete"
                 onClick={() => {
-                  if (confirm(`Delete the card “${c.word}”?`)) db.cards.delete(c.id);
+                  if (confirm(`Delete the card “${c.word}”?`)) void deleteRecords('cards', [c.id]);
                 }}
               >
                 <Trash2 className="size-4" />

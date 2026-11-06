@@ -4,7 +4,7 @@ import { updateDay } from '@/lib/activity';
 import { LEVELS, type Level } from '@/lib/cefr';
 import { loadDeck } from '@/lib/data/load';
 import type { DeckEntry } from '@/lib/data/types';
-import { db, today, uid } from '@/lib/db';
+import { db, today, tombstone, uid } from '@/lib/db';
 import type { Card, ReviewLog } from '@/lib/db/types';
 import { emptySchedule, schedule, type ReviewRating } from './fsrs';
 
@@ -128,9 +128,11 @@ export async function reviewCard(card: Card, rating: ReviewRating, durationMs: n
 }
 
 export async function undoReview(res: ReviewResult): Promise<void> {
-  await db.transaction('rw', db.cards, db.reviews, async () => {
-    await db.cards.put(res.previous);
+  await db.transaction('rw', db.cards, db.reviews, db.tombstones, async () => {
+    // newer than the reviewed copy, so sync keeps the undo
+    await db.cards.put({ ...res.previous, updatedAt: Date.now() });
     await db.reviews.delete(res.logId);
+    await db.tombstones.put(tombstone('reviews', res.logId));
   });
   await updateDay((d) => {
     d.reviews = Math.max(0, d.reviews - 1);

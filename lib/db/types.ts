@@ -280,3 +280,11 @@ export interface MetaEntry {
   key: string;
   value: unknown;
 }
+
+/** Remembers a deleted record, so sync doesn't bring it back from another device. */
+export interface Tombstone {
+  key: string;
+  table: string;
+  id: string;
+  at: number;
+}

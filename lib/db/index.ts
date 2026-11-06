@@ -12,6 +12,7 @@ import type {
   ReviewLog,
   SkillState,
   TextProgress,
+  Tombstone,
   TopicProgress,
   WeeklyPlan,
   Writing,
@@ -33,6 +34,7 @@ export class AppDB extends Dexie {
   conversations!: EntityTable<Conversation, 'id'>;
   aiCache!: EntityTable<AiCacheEntry, 'key'>;
   meta!: EntityTable<MetaEntry, 'key'>;
+  tombstones!: EntityTable<Tombstone, 'key'>;
 
   constructor(name = 'deutsch-lernen') {
     super(name);
@@ -53,6 +55,7 @@ export class AppDB extends Dexie {
       aiCache: 'key, at, task',
       meta: 'key',
     });
+    this.version(2).stores({ tombstones: 'key' });
   }
 }
 
@@ -74,9 +77,22 @@ export const TABLE_NAMES = [
   'conversations',
   'aiCache',
   'meta',
+  'tombstones',
 ] as const;
 
 export type TableName = (typeof TABLE_NAMES)[number];
+
+export function tombstone(table: TableName, id: string, at = Date.now()): Tombstone {
+  return { key: `${table}:${id}`, table, id, at };
+}
+
+/** Deletes records for good: sync won't bring them back from another device. */
+export async function deleteRecords(table: 'assessments' | 'cards', ids: string[]): Promise<void> {
+  await db.transaction('rw', db.table(table), db.tombstones, async () => {
+    await db.table(table).bulkDelete(ids);
+    await db.tombstones.bulkPut(ids.map((id) => tombstone(table, id)));
+  });
+}
 
 export function uid(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
