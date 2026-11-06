@@ -7,7 +7,7 @@
  */
 import Dexie from 'dexie';
 import { useSyncExternalStore } from 'react';
-import { canonical, clearSyncedData, exportData, importBackup, parseBackup, SYNCED_TABLES, type Backup } from '@/lib/backup';
+import { canonical, clearSyncedData, exportForSync, importBackup, parseBackup, SYNCED_TABLES, type Backup } from '@/lib/backup';
 import { db } from '@/lib/db';
 import { getProfile } from '@/lib/db/profile';
 import { fnv1a } from '@/lib/lexicon/hash';
@@ -143,7 +143,7 @@ export async function syncOnce(): Promise<void> {
     if (!isDirty()) return finish();
     // cleared before reading, so changes made during the upload are picked up next time
     setDirty(false);
-    const local = await exportData(SYNCED_TABLES);
+    const local = await exportForSync();
     const hash = fingerprint(local.tables);
     if (hash === state.hash || (state.hash === undefined && isEmpty(local.tables))) return finish();
 

@@ -7,7 +7,7 @@
 import type { Table } from 'dexie';
 import { z } from 'zod';
 import { db, TABLE_NAMES } from '@/lib/db';
-import type { DayLog, Tombstone } from '@/lib/db/types';
+import type { DayLog, Profile, Tombstone } from '@/lib/db/types';
 
 export const BACKUP_VERSION = 1;
 /** caches are not worth exporting */
@@ -70,6 +70,17 @@ export async function exportData(names: readonly TableName[] = EXPORTED): Promis
   const tables = {} as Backup['tables'];
   for (const name of names) tables[name] = (await table(name).toArray()) as Row[];
   return { app: 'deutsch-lernen', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), tables };
+}
+
+/** What goes to the sync server: the AI passphrase stays on each device. */
+export async function exportForSync(): Promise<Backup> {
+  const data = await exportData(SYNCED_TABLES);
+  data.tables.profile = data.tables.profile?.map((p) => {
+    const ai = { ...(p.ai as Profile['ai'] | undefined) };
+    delete ai.passphrase;
+    return { ...p, ai };
+  });
+  return data;
 }
 
 export async function downloadBackup(): Promise<void> {
@@ -137,6 +148,13 @@ function mergeDay(local: DayLog, incoming: DayLog): DayLog {
 
 const stampOf = (name: TableName, row: Row) => Number(row[STAMP[name] ?? ''] ?? 0);
 
+/** An incoming profile from sync has no passphrase: this device keeps its own. */
+function keepPassphrase(local: Row, incoming: Row): Row {
+  const passphrase = (local.ai as Profile['ai'] | undefined)?.passphrase;
+  const ai = incoming.ai as Profile['ai'] | undefined;
+  return passphrase && !ai?.passphrase ? { ...incoming, ai: { ...ai, passphrase } } : incoming;
+}
+
 /**
  * Above 0 when the incoming copy wins. Gives the same answer from either side, so two devices
  * merging each other's data always end up identical.
@@ -192,9 +210,10 @@ export async function importBackup(b: Backup, mode: 'replace' | 'merge'): Promis
       const key = KEY[name];
       const localRows = new Map((await t.toArray()).map((r) => [String(r[key]), r]));
       const puts: Row[] = [];
-      for (const row of rows) {
-        const id = String(row[key]);
+      for (const incoming of rows) {
+        const id = String(incoming[key]);
         const local = localRows.get(id);
+        const row = name === 'profile' && local ? keepPassphrase(local, incoming) : incoming;
         const gone = deleted.get(`${name}:${id}`);
         if (gone && stampOf(name, row) <= gone.at) continue;
         let next: Row | undefined;

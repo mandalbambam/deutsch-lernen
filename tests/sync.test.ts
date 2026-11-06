@@ -254,6 +254,9 @@ describe('sync route', () => {
     expect((await put(gz, { 'content-type': 'text/plain', 'x-sync-etag': etag })).status).toBe(415);
     expect((await put(new Uint8Array([1, 2, 3]), { 'content-type': 'application/gzip', 'x-sync-etag': etag })).status).toBe(400);
     expect((await put(gz, { 'content-type': 'application/gzip', 'content-length': String(21 * 1024 * 1024), 'x-sync-etag': etag })).status).toBe(413);
+    const huge = new Uint8Array(21 * 1024 * 1024);
+    huge.set([0x1f, 0x8b]);
+    expect((await put(huge, { 'content-type': 'application/gzip', 'x-sync-etag': etag })).status).toBe(413); // no size announced
     expect((await GET(new Request('http://test/api/sync'))).status).toBe(204); // nothing stored
   });
 
@@ -501,6 +504,41 @@ describe('two devices', () => {
       await syncOnce();
       expect(await db.cards.count()).toBe(1);
     });
+  });
+
+  it('the AI passphrase stays on each device and never reaches the server', async () => {
+    const laptop = newDevice();
+    const phone = newDevice();
+    await on(laptop, async () => {
+      await db.profile.put(profile({ onboarded: true, dailyMinutes: 60, updatedAt: 100, ai: { passphrase: 'laptop-secret', noticeAccepted: true } }));
+      await db.cards.put(card('Tisch', 5));
+      await syncOnce();
+    });
+    const stored = await GET(new Request('http://test/api/sync'));
+    const text = await new Response(stored.body!.pipeThrough(new DecompressionStream('gzip'))).text();
+    expect(text).toContain('noticeAccepted');
+    expect(text).not.toContain('laptop-secret');
+
+    await on(phone, async () => {
+      await syncOnce();
+      expect((await db.profile.get('me'))?.ai).toEqual({ noticeAccepted: true });
+      await updateProfile({ dailyMinutes: 15 }); // a settings change comes back to the laptop
+      localStorage.setItem('deutsch-lernen-sync-dirty', '1');
+      await syncOnce();
+    });
+    await on(laptop, async () => {
+      await syncOnce();
+      const merged = await db.profile.get('me');
+      expect(merged?.dailyMinutes).toBe(15);
+      expect(merged?.ai.passphrase).toBe('laptop-secret');
+    });
+
+    uploads = 0;
+    await on(laptop, async () => {
+      localStorage.setItem('deutsch-lernen-sync-dirty', '1');
+      await syncOnce();
+    });
+    expect(uploads).toBe(0); // the passphrase doesn't make the devices look different
   });
 
   it('a new device sets up without erasing anything', async () => {
